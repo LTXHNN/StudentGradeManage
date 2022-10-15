@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>学生成绩管理</title>
+
+    <script src="js/vue.js"></script>
+    <script src="js/axios-0.18.0.js"></script>
+    <script src="element-ui/lib/index.js"></script>
+    <link rel="stylesheet" href="element-ui/lib/theme-chalk/index.css">
+</head>
+<style>
+    .el-table .warning-row {
+        background: oldlace;
+    }
+
+    .el-table .success-row {
+        background: #f0f9eb;
+    }
+</style>
+<body>
+
+<div id="app">
+    <el-form :inline="true" :model="selectCondition" class="demo-form-inline">
+        <el-form-item label="学号">
+            <el-input v-model="selectCondition.studentID" placeholder="学号"></el-input>
+        </el-form-item>
+        <el-form-item label="姓名">
+            <el-input v-model="selectCondition.studentName" placeholder="姓名"></el-input>
+        </el-form-item>
+        <el-form-item label="性别">
+            <el-select v-model="selectCondition.sex" placeholder="性别">
+                <el-option label="男" value="男"></el-option>
+                <el-option label="女" value="女"></el-option>
+                <el-option label="男/女" value=""></el-option>
+            </el-select>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" @click="searchStudent">查询</el-button>
+        </el-form-item>
+    </el-form>
+    <el-row>
+
+        <el-button type="primary" @click="deleteByIDs" plain>批量删除</el-button>
+        <el-button type="danger" @click="setAdd" plain>新增</el-button>
+    </el-row>
+    <!--    添加信息的对话框-->
+    <el-dialog
+            title="添加/修改"
+            :visible.sync="dialogVisible"
+            width="30%"
+    >
+        <el-form ref="form" :model="student" label-width="80px">
+            <el-form-item label="姓名">
+                <el-input v-model="student.studentName"></el-input>
+            </el-form-item>
+            <el-form-item label="性别">
+                <el-select v-model="student.sex" placeholder="性别">
+                    <el-option label="男" value="男"></el-option>
+                    <el-option label="女" value="女"></el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="学号">
+                <el-input v-model="student.studentID"></el-input>
+
+            </el-form-item>
+            <el-form-item label="成绩" :inline="true">
+                <el-input v-model="student.math" placeholder="语文" maxlength="4"
+                ></el-input>
+                <el-input v-model="student.chinese" placeholder="数学" maxlength="4"
+                ></el-input>
+                <el-input v-model="student.english" placeholder="英语" maxlength="4"
+                ></el-input>
+                <el-input v-model="student.java" placeholder="java" maxlength="4"
+                ></el-input>
+
+            </el-form-item>
+            <el-form-item label="描述">
+                <el-input type="textarea" v-model="student.detailMsg" maxlength="200"
+                          show-word-limit></el-input>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="submit">提交</el-button>
+                <el-button @click="dialogVisible = false">取消</el-button>
+            </el-form-item>
+        </el-form>
+    </el-dialog>
+
+    <!--    表格-->
+    <template>
+        <el-table
+                :data="students"
+                style="width: 100%"
+                :row-class-name="tableRowClassName"
+                align="center"
+                @selection-change="handleSelectionChange">
+            <el-table-column
+                    type="selection"
+                    width="55">
+            </el-table-column>
+            <el-table-column
+                    type="index"
+                    width="50">
+            </el-table-column>
+            <el-table-column
+                    prop="studentName"
+                    label="姓名"
+                    align="center">
+            </el-table-column>
+            <el-table-column
+                    prop="studentID"
+                    label="学号"
+                    align="center">
+            </el-table-column>
+
+            <el-table-column
+                    prop="math"
+                    label=" 数学"
+                    align="center">
+            </el-table-column>
+            <el-table-column
+                    prop="chinese"
+                    label="语文"
+                    align="center">
+            </el-table-column>
+            <el-table-column
+                    prop="english"
+                    label="英语"
+                    align="center">
+            </el-table-column>
+            <el-table-column
+                    prop="java"
+                    label="Java"
+                    align="center">
+            </el-table-column>
+            <el-table-column
+                    prop="detailMsg"
+                    label="描述"
+                    align="center">
+            </el-table-column>
+            <el-table-column
+                    prop="op"
+                    label="操作"
+                    align="center">
+                <template slot-scope="scope">
+                <el-row >
+                    <el-button type="primary" size="small" @click="setUpData(scope.row)">修改</el-button>
+
+                    <el-button type="danger" size="small" @click="deleteByID(scope.row)">删除</el-button>
+                </el-row>
+                </template>
+
+            </el-table-column>
+        </el-table>
+    </template>
+    <!--    分页工具-->
+    <el-pagination
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            :current-page="currentPage"
+            :page-sizes="[3, 5, 10, 20]"
+            :page-size="pageSize"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="totalPage">
+    </el-pagination>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                title:'cc',
+                medType:"",
+                currentPage:1,
+                totalPage: 0,
+                pageSize:3,
+                hint: "",
+                //对话框展示
+                dialogVisible: false,
+                // 表单
+                student: {
+                    studentName: '',
+                    sex: '',
+                    studentID: '',
+                    java: '',
+                    chinese: '',
+                    math: '',
+                    english: '',
+                    detailMag: '',
+                    id: ""
+                },
+                selectCondition:{
+                    studentName: '',
+                    sex: '',
+                    studentID: '',
+                    java: '',
+                    chinese: '',
+                    math: '',
+                    english: '',
+                    detailMag: '',
+                    id: ""
+                },
+                ids: [],
+                students: [],
+                //复选数据
+                multipleSelection: []
+            }
+        },
+
+        mounted() {
+            this.selectByPage();
+        },
+        methods: {
+            searchStudent() {
+                console.log('search');
+                var _this = this;
+
+                console.log(this.currentPage+"  ,"+this.pageSize);
+                console.log(this.selectCondition);
+                axios({
+                    method: "post",
+                    url: "http://localhost:8080/StudentGradeManage/student/selectByPageAndCondition?currentPage="+_this.currentPage+"&pageSize="+_this.pageSize,
+                    data:_this.selectCondition
+                }).then(function (resp) {
+                    console.log(resp.data)
+                    if(resp.data=="failed"){
+                        _this.$message.error('查询失败');
+                    }else{
+                        _this.$message({
+                            message: '查询成功',
+                            type: 'success'
+                        });
+                        _this.students = resp.data.students;
+                        _this.totalPage = resp.data.totalPage;
+                        window.console.log(resp.data);
+                    }
+
+                })
+            },
+            tableRowClassName({row, rowIndex}) {
+                if (rowIndex % 2 == 0) {
+                    return 'success-row';
+                }
+                // } else if (rowIndex % 10 == 0) {
+                //     return 'warning-row';
+                // }
+                return '';
+            },
+            handleSelectionChange(val) {
+                this.multipleSelection = val;
+            },
+
+
+            //查询方法
+            selectStudent() {
+                console.log(this.student);
+            },
+            addStudent() {
+                console.log(this.student);
+                var _this = this;
+                axios({
+                    method: "post",
+                    url: "http://localhost:8080/StudentGradeManage/student/addStudent",
+                    data: _this.student
+                }).then(function (resp) {
+                    if (resp.data == "success") {
+                        _this.dialogVisible = false;
+                        _this.selectByPage();
+                        _this.$message({
+                            message: '添加成功',
+                            type: 'success'
+                        });
+                    } else {
+                        _this.$message.error('添加失败');
+                    }
+
+                })
+            },
+            handleSizeChange(val) {
+                console.log(`每页 ${val} 条`);
+                this.pageSize = val;
+                this.selectByPage();
+            },
+            handleCurrentChange(val) {
+                this.currentPage = val;
+                this.selectByPage();
+
+                console.log(`当前页: ${val}`);
+            },
+            selectAll() {
+                var _this = this;
+
+                axios({
+                    method: "get",
+                    url: "http://localhost:8080/StudentGradeManage/student/selectAll",
+                }).then(function (resp) {
+                    if(resp.data=="failed"){
+                        _this.$message.error('数据库访问失败');
+                    }else{
+
+                        _this.students = resp.data;
+                        window.console.log(resp.data);
+                    }
+
+                })
+            },
+            selectByPage() {
+                var _this = this;
+
+                console.log(this.currentPage+"  ,"+this.pageSize);
+
+                axios({
+                    method: "get",
+                    url: "http://localhost:8080/StudentGradeManage/student/selectByPage?currentPage="+_this.currentPage+"&pageSize="+_this.pageSize,
+                }).then(function (resp) {
+                    console.log(resp.data)
+                    if(resp.data=="failed"){
+                        _this.$message.error('数据库访问失败');
+                    }else{
+                        _this.students = resp.data.students;
+                        _this.totalPage = resp.data.totalPage;
+                        window.console.log(resp.data);
+                    }
+
+                })
+            },
+            submit(){
+                if(this.medType=='add'){
+                    this.addStudent();
+                }else{
+                    this.upData();
+                }
+            },
+            deleteByIDs() {
+                var _this = this;
+                var multipleSelection = _this.multipleSelection;
+                if (multipleSelection.length > 0) {
+                    for (let i = 0; i < multipleSelection.length; i++) {
+                        _this.ids[i] = multipleSelection[i].id;
+                    }
+                    this.$confirm('此操作将永久删除这些数据, 是否继续?', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning',
+                        center: true
+                    }).then(() => {
+                        axios({
+                            method: "post",
+                            url: "http://localhost:8080/StudentGradeManage/student/deleteByIds",
+                            data:_this.ids
+                        }).then(function (resp) {
+                            if (resp.data == "success") {
+                                _this.selectByPage();
+                                _this.$message({
+                                    message: '删除成功',
+                                    type: 'success'
+                                });
+                            } else {
+                                _this.$message.error('删除失败');
+                            }
+
+                        })
+                    }).catch(() => {
+                        this.$message({
+                            type: 'info',
+                            message: '已取消删除'
+                        });
+                    });
+
+                }
+            },
+            upData() {
+                var _this = this;
+                console.log(this.student);
+                axios({
+                    method: "post",
+                    url: "http://localhost:8080/StudentGradeManage/student/upData",
+                    data:_this.student
+                }).then(function (resp) {
+                    if (resp.data == "success") {
+                        _this.dialogVisible=false;
+                        _this.selectByPage();
+                        _this.$message({
+                            message: '修改成功',
+                            type: 'success'
+                        });
+                    } else {
+                        _this.$message.error('修改失败');
+                    }
+                })
+            },
+            deleteByID(row) {
+                console.log(row)
+                var id  = row.id;
+                var _this = this;
+                this.$confirm('此操作将永久删除该数据, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning',
+                    center: true
+                }).then(() => {
+                    axios({
+                        method: "get",
+                        url: "http://localhost:8080/StudentGradeManage/student/deleteById?id=" + id
+                    }).then(function (resp) {
+                        if (resp.data == "success") {
+                            _this.selectByPage();
+                            _this.$message({
+                                message: '删除成功',
+                                type: 'success'
+                            });
+                        } else {
+                            _this.$message.error('删除失败');
+                        }
+
+                    })
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
+
+            },
+            setAdd(){
+                this.medType="add";
+                this.dialogVisible=true;
+            },
+            setUpData(row){
+                this.student = row;
+                this.medType='updata';
+                this.dialogVisible=true;
+            }
+        }
+
+
+
+    })
+</script>
+</body>
+</html>

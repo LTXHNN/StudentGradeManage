@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ty.mapper.StudentMapper">
+    <!--    用来映射，表的列名和属性名不一致-->
+    <!--        <resultMap id="StudentResultMap" type="Student">-->
+    <!--            <result column="student_id" property="studentID"/>-->
+    <!--            <result column="student_name" property="studentName"/>-->
+    <!--            <result column="student_password" property="studentPassword"/>-->
+    <!--            <result column="student_img" property="studentImg"/>-->
+    <!--            <result column="detail_msg" property="detailMsg"/>-->
+    <!--        </resultMap>-->
+
+    <!--        <select id="selectAll" resultType="Student">-->
+    <!--            select *-->
+    <!--            from student-->
+    <!--        </select>-->
+
+    <delete id="deleteByIDs">
+        delete from student where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="selectByPageAndCondition" resultType="com.ty.pojo.Student">
+        select *
+        from student
+        <where>
+            <if test="student.studentName != null and student.studentName!=''">
+                studentName like #{student.studentName}
+            </if>
+            <if test="student.studentID != null and student.studentID != ''">
+                and studentID like #{student.studentID}
+            </if>
+            <if test="student.sex != null and student.sex!=''">
+                and sex = #{student.sex}
+            </if>
+        </where>
+        limit #{begin} , #{size}
+
+
+    </select>
+    <select id="selectTotalCountByCondition" resultType="java.lang.Integer">
+        select count(*)
+        from student
+        <where>
+            <if test="studentName != null and studentName !=''">
+                and studentName like #{studentName}
+            </if>
+            <if test="studentID != null and studentID != ''">
+                and studentID like #{studentID}
+            </if>
+            <if test="sex != '' and sex!=null">
+                and sex = #{sex}
+            </if>
+        </where>
+    </select>
+
+</mapper>

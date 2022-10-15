@@ -1,0 +1,80 @@
+
+body {
+    background: url('https://vkceyugu.cdn.bspapp.com/VKCEYUGU-d7a4a23f-ad02-4a0b-96b9-c301b98df5c4/bd0a57ad-c5ea-4215-a963-80bf2ec838cd.jpeg') no-repeat;
+    background-size: 100% 130%;
+}
+
+#login_box {
+    width: 20%;
+    height: 300px;
+    background-color: rgba(0, 0, 0, 0.38);
+    margin: auto ;
+    margin-top: 5%;
+    text-align: center;
+    border-radius: 10px;
+    padding: 50px 50px;
+}
+
+h2 {
+    color: rgba(192, 208, 229, 0.56);
+    margin-top: 2%;
+}
+
+#input-box {
+    margin-top:5%;
+}
+
+
+
+input {
+    border: 0;
+    width: 60%;
+    font-size: 15px;
+    color: #fff;
+    background: transparent;/*透明*/
+    border-bottom: 2px solid #fff;
+    padding: 5px 10px;
+    outline: none;
+    margin-top: 10px;
+}
+#selectMusic{
+    text-align: center;
+    font-family: STXinwei;
+    color:hotpink;
+    border-radius: 5px;
+    font-size: 100%;
+}
+#music_button{
+    background-color: #1c2af7;
+    font-size: 100%;
+    width: auto;
+    height: auto;
+    font-family:STCaiyun;
+    border-radius: 10px;
+    background-image: linear-gradient(to right, #3a6be6, #7b12ec);
+}
+.div2{
+    margin-left: 1%;
+    font-family: STXinwei;
+    color: bisque;
+}
+#divtop{
+    margin-top: 20px;
+}
+#login_button {
+    margin-top: 60px;
+    width: 60%;
+    height: 40px;
+    border-radius: 10px;
+    border: 0;
+    color: #fff;
+    text-align: center;
+    line-height: 30px;
+    font-size: 15px;
+    background-image: linear-gradient(to right, #98d0d0, #7486f3);
+
+}
+
+
+
+

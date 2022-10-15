@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录</title>
+    <script src="js/vue.js"></script>
+    <script src="js/axios-0.18.0.js"></script>
+    <link type="text/css" rel="stylesheet" href="./css/login.css">
+    <script src="js/music.js"></script>
+</head>
+
+<body>
+
+
+
+<div>
+    <div class="div2">
+        选择音乐
+    </div>
+    <div class="div2">
+        <select id="selectMusic" onchange="getValue()">
+            <option value="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-d7a4a23f-ad02-4a0b-96b9-c301b98df5c4/a2c5da39-b7ac-45ef-aa77-a5966f7f0ec1.mp3">钢琴曲</option>
+            <option value="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-d7a4a23f-ad02-4a0b-96b9-c301b98df5c4/79179e14-4956-469c-90f9-e289560a5eaf.mp3">city of stars</option>
+        </select>
+    </div>
+</div>
+
+<div id="divtop">
+    <div class="div2">
+        <audio autoplay="autoplay" loop="loop"  id = "audio"  volume="0.1" >
+            <source src="https://vkceyugu.cdn.bspapp.com/VKCEYUGU-d7a4a23f-ad02-4a0b-96b9-c301b98df5c4/a2c5da39-b7ac-45ef-aa77-a5966f7f0ec1.mp3"
+                    type="audio/mp3"  >
+        </audio>
+    </div>
+    <div class="div2">
+        <button onclick="changeState()" id="music_button" >
+            播放/暂停
+        </button>
+    </div>
+</div>
+<div id="app">
+    <div id="login_box">
+        <h2>管理员登录</h2>
+        <div id="input_box">
+            <input type="text"  v-model="username" placeholder="请输入用户名">
+        </div>
+        <div class="input_box">
+            <input type="password" v-model="password" placeholder="请输入密码">
+        </div>
+        <button @click="login" id="login_button">登录</button><br>
+
+    </div>
+
+</div>
+<script>
+
+    new Vue({
+        el:"#app",
+        data(){
+            return{
+                username:"",
+                password:""
+            }
+
+        },
+        methods: {
+            login() {
+                var _this = this;
+                console.log('login')
+                console.log(this.username);
+                console.log(this.password);
+                axios({
+                    method: "get",
+                    url: "http://localhost:8080/StudentGradeManage/admin/login?username=" + _this.username + "&password=" + _this.password
+                }).then(function (resp) {
+                    console.log(resp.data);
+                    if (resp.data == "success") {
+                        location.href = "http://localhost:8080/StudentGradeManage/manage.html";
+
+                    } else {
+                        _this.$message.error('登录失败');
+                    }
+                })
+            },
+        }
+    })
+
+</script>
+</body>
+</html>
